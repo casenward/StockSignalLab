@@ -1,6 +1,7 @@
 # Base class for a stock
 # Casen Ward
 
+from backend.services import signal_calculator
 import backend.apis.finnhub as finnhub
 import backend.services.score_calculator as score_calculator
 import yfinance as yahoo
@@ -21,11 +22,15 @@ def final_rating(score: float) -> str:
 
 class Stock:
     def __init__(self, symbol):
+        self.signal = None
         self.symbol = None
         self.name = None
         self.current_price = None
         self.score = None
         self.consensus = None
+        
+    def set_signal(self):
+        self.signal = signal_calculator.signal_calculator(self.symbol)
 
     def set_symbol(self, symbol):
         self.symbol = symbol.upper() 

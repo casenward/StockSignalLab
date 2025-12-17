@@ -10,10 +10,12 @@ def get_stock(symbol: str):
     stock.set_name()
     stock.set_currentPrice()
     stock.set_consensus()
+    stock.set_signal()
     return {
         "symbol": stock.symbol,
         "name": stock.name,
         "current_price": stock.current_price,
         "score": stock.score,
         "consensus": stock.consensus,
+        "signal": stock.signal,
     }
