@@ -1,4 +1,4 @@
-from backend.services.score_calculator import calculate_score
+from backend.calculators.score_calculator import calculate_score
 
 
 def signal_calculator(ticker: str) -> float:

@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from backend.routes import stock_routes
-import backend.services.signal_calculator as signal_calculator
+import backend.calculators.signal_calculator as signal_calculator
 
 app = FastAPI()
 

@@ -1,9 +1,9 @@
 # Base class for a stock
 # Casen Ward
 
-from backend.services import signal_calculator
+from backend.calculators import signal_calculator
 import backend.apis.finnhub as finnhub
-import backend.services.score_calculator as score_calculator
+import backend.calculators.score_calculator as score_calculator
 import yfinance as yahoo
 
 
