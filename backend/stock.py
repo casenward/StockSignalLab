@@ -3,7 +3,7 @@
 
 from backend.calculators import signal_calculator
 import backend.apis.finnhub as finnhub
-import backend.calculators.score_calculator as score_calculator
+from backend.strategies import consensusv1_strat
 import yfinance as yahoo
 
 
@@ -43,7 +43,7 @@ class Stock:
         self.current_price = finnhub.get_quote(self.symbol)["c"] # Current price is in the "c" field of the quote response
     
     def set_score(self):
-        self.score = score_calculator.calculate_score(self)
+        self.score = consensusv1_strat.calculate_consensus_score_v1(self)
         
     def set_consensus(self):
         self.set_score()

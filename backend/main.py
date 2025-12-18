@@ -17,7 +17,7 @@ app.include_router(stock_routes.router, prefix="/api", tags=["Stocks"])
 
 @app.get("/")
 def read_root():
-    signal = signal_calculator.signal_calculator(ticker="SMCI") ## Test with SMCI ticker
+    signal = signal_calculator.signal_calculator(ticker="VRT") ## Test with SMCI ticker
     return {"Signal": signal}
     
 
