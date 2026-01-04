@@ -22,9 +22,10 @@ class BacktestResult:
         self.time_in_market_pct = self._compute_time_in_market()
         self.max_drawdown_pct = self._compute_max_drawdown()
 
+    ## Internal computation methods
     def _compute_total_return(self) -> float:
         equity = 1.0
-        for trade in self.trades:
+        for trade in self.trades:                
             equity *= (1 + trade.return_pct / 100)
         return (equity - 1) * 100
 
