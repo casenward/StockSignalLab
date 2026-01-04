@@ -1,33 +1,55 @@
-# StockSignalLab
+# StockSignalLab — Version 3  
+## Backtesting Engine
 
-StockSignalLab is a framework for generating stock trading signals and evaluating them through backtesting.
+## Overview
 
-## Goal
+**Version 3** adds a working **backtesting engine** to StockSignalLab.
 
-Build a flexible system that allows different trading strategies to be tested using historical market data.
+This version answers a simple question:
 
+> *If I followed my signals in the past, what would have happened?*
 
-## Calculators
+The focus of Version 3 is correctness and clean execution, not profitability.
 
-Calculators perform financial computations and return values from 1 to 100.
+---
 
-## Strategies
+## What Version 3 Does
 
-Strategies use calculator outputs to return a signal.
+- Runs trading strategies on historical price data
+- Executes trades using next-day prices (no look-ahead)
+- Tracks each trade from entry to exit
+- Produces basic performance metrics
+- Allows strategy and time period selection from the terminal
 
-- 1 = Buy  
-- 0 = Hold  
-- -1 = Sell  
+---
 
-## Backtesting
+## How It Works
 
-Version 2 focuses on building a backtesting framework for strategy evaluation.
+### Backtest Engine
+- Loops through historical data day by day
+- Asks the strategy for a signal (`1 = buy`, `0 = hold`, `-1 = sell`)
+- Executes trades at the next day’s open
+- Records completed trades and results
 
-## Status
+### Strategies
+- Use historical price data only
+- Return a buy, hold, or sell signal
+- Do not fetch data or manage trades
 
-- Version 1: Complete  
-- Version 2: In progress  
+---
 
-## Disclaimer
+## Output
 
-For educational purposes only. Not financial advice.
+Each backtest produces:
+- A list of trades with entry date, exit date, and return
+- A summary including total return, win rate, and time in market
+
+---
+
+## Version History
+
+- **Version 1** — Consensus scoring  
+- **Version 2** — Signal generation  
+- **Version 3** — Backtesting and execution  
+
+---
