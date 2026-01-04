@@ -1,7 +1,5 @@
-.PHONY: clean
-
 clean:
-	@echo "🧹 Cleaning Python cache files..."
-	@find . -type d -name "__pycache__" -exec rm -rf {} +
-	@find . -type f -name "*.pyc" -delete
-	@echo "✅ All __pycache__ and .pyc files removed."
+	@echo "Cleaning Python cache files..."
+	@powershell -Command "Get-ChildItem -Recurse -Directory -Filter __pycache__ | Remove-Item -Recurse -Force"
+	@powershell -Command "Get-ChildItem -Recurse -File -Filter *.pyc | Remove-Item -Force"
+	@echo "Clean complete."

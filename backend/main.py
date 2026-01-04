@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from backend.routes import stock_routes
-import backend.calculators.signal_calculator as signal_calculator
+from backend.routes import stock_routes, backtest_routes
+
 
 app = FastAPI()
 
@@ -14,11 +14,11 @@ app.add_middleware(
 )
 
 app.include_router(stock_routes.router, prefix="/api", tags=["Stocks"])
+app.include_router(backtest_routes.router, prefix="/api", tags=["Backtest"])
 
 @app.get("/")
 def read_root():
-    signal = signal_calculator.signal_calculator(ticker="VRT") ## Test with SMCI ticker
-    return {"Signal": signal}
+    return {"message": "Welcome to the Stock Analysis and Backtesting API"}
     
 
 
