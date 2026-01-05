@@ -125,6 +125,99 @@
       color: #ff6b6b;
     }
 
+    .performance-comparison {
+      margin-top: 16px;
+      padding: 16px;
+      border-radius: 10px;
+      text-align: center;
+      font-weight: 700;
+      font-size: 1.2rem;
+      border: 2px solid transparent;
+      animation: pulse-attention 1.5s ease-in-out infinite;
+    }
+
+    .performance-comparison.success {
+      background: rgba(57, 255, 20, 0.15);
+      border-color: #39ff14;
+      color: #39ff14;
+      box-shadow: 0 0 20px rgba(57, 255, 20, 0.3);
+    }
+
+    .performance-comparison.fail {
+      background: rgba(255, 107, 107, 0.15);
+      border-color: #ff6b6b;
+      color: #ff6b6b;
+      box-shadow: 0 0 20px rgba(255, 107, 107, 0.3);
+    }
+
+    @keyframes pulse-attention {
+      0%, 100% {
+        box-shadow: 0 0 20px rgba(57, 255, 20, 0.3);
+        transform: scale(1);
+      }
+      50% {
+        box-shadow: 0 0 30px rgba(57, 255, 20, 0.6);
+        transform: scale(1.02);
+      }
+    }
+
+    .performance-comparison.fail {
+      animation: pulse-fail 1.5s ease-in-out infinite;
+    }
+
+    @keyframes pulse-fail {
+      0%, 100% {
+        box-shadow: 0 0 20px rgba(255, 107, 107, 0.3);
+        transform: scale(1);
+      }
+      50% {
+        box-shadow: 0 0 30px rgba(255, 107, 107, 0.6);
+        transform: scale(1.02);
+      }
+    }
+
+    .investment-calculator {
+      padding: 12px;
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: 8px;
+      border: 1px solid rgba(132, 247, 255, 0.1);
+    }
+
+    .calculator-label {
+      font-size: 0.8rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      margin-bottom: 8px;
+    }
+
+    .calculator-input {
+      width: 100%;
+      padding: 8px 10px;
+      border-radius: 6px;
+      border: 1px solid var(--panel-border);
+      background: var(--panel);
+      color: var(--fg);
+      font-family: inherit;
+      font-size: 0.9rem;
+      margin-bottom: 8px;
+      box-shadow: var(--inset-top);
+      outline: none;
+      transition: box-shadow .15s ease, border-color .15s ease;
+    }
+
+    .calculator-input:focus {
+      border-color: transparent;
+      box-shadow: var(--inset-top), 0 0 0 2px var(--ring);
+    }
+
+    .calculator-result {
+      font-size: 0.9rem;
+      color: var(--accent-2);
+      font-weight: 700;
+      font-family: "Share Tech Mono", monospace;
+    }
+
     .loading-spinner {
       display: inline-block;
       width: 20px;
@@ -303,6 +396,7 @@
         end_date,
         num_trades,
         total_return_pct,
+        buy_and_hold_return_pct,
         win_rate_pct,
         avg_trade_duration_days,
         time_in_market_pct,
@@ -343,18 +437,33 @@
       }
 
       resultsDiv.innerHTML = `
-        <h2>${ticker} <span class="status-badge success">SUCCESS</span></h2>
+        <h2>${ticker} <span class="status-badge success">BACKTEST RAN SUCCESSFULLY</span></h2>
         <p style="color: var(--muted); margin: 8px 0;">
           Backtest Period: ${start_date} to ${end_date}
         </p>
 
         <div class="metrics-grid">
           <div class="metric">
-            <div class="metric-label">Total Return</div>
+            <div class="metric-label">Your Return</div>
             <div class="metric-value ${total_return_pct < 0 ? "negative" : ""}">
               ${total_return_pct >= 0 ? "+" : ""}${total_return_pct.toFixed(2)}%
             </div>
           </div>
+          <div class="metric">
+            <div class="metric-label">Buy & Hold Return</div>
+            <div class="metric-value ${buy_and_hold_return_pct < 0 ? "negative" : ""}">
+              ${buy_and_hold_return_pct >= 0 ? "+" : ""}${buy_and_hold_return_pct.toFixed(2)}%
+            </div>
+          </div>
+        </div>
+
+        ${
+          total_return_pct > buy_and_hold_return_pct
+            ? `<div class="performance-comparison success">✓ BEAT BUY & HOLD</div>`
+            : `<div class="performance-comparison fail">✗ UNDERPERFORMED BUY & HOLD</div>`
+        }
+
+        <div class="metrics-grid">
           <div class="metric">
             <div class="metric-label">Win Rate</div>
             <div class="metric-value">${win_rate_pct.toFixed(1)}%</div>
@@ -375,10 +484,38 @@
             <div class="metric-label">Max Drawdown</div>
             <div class="metric-value negative">${max_drawdown_pct.toFixed(2)}%</div>
           </div>
+          <div class="investment-calculator">
+            <div class="calculator-label">Investment Calculator</div>
+            <input 
+              type="number" 
+              class="calculator-input" 
+              placeholder="Enter amount ($)" 
+              id="investment-input-${ticker}"
+              min="0"
+              step="0.01"
+            />
+            <div class="calculator-result" id="investment-result-${ticker}">
+              Final Amount: $0.00
+            </div>
+          </div>
         </div>
+
+        
 
         ${tradesHTML}
       `;
+
+      // Add event listener for investment calculator
+      const investmentInput = document.getElementById(`investment-input-${ticker}`);
+      const investmentResult = document.getElementById(`investment-result-${ticker}`);
+      
+      if (investmentInput && investmentResult) {
+        investmentInput.addEventListener("input", function() {
+          const amount = parseFloat(this.value) || 0;
+          const finalAmount = amount * (1 + total_return_pct / 100);
+          investmentResult.textContent = `Final Amount: ${formatCurrency(finalAmount)}`;
+        });
+      }
     }
   </script>
 </body>

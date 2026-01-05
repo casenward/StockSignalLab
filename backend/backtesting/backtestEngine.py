@@ -76,7 +76,8 @@ class BacktestEngine:
             ticker=self.ticker,
             start_date=self.price_data[0]["date"],
             end_date=self.price_data[-1]["date"],                
-            trades=self.trades
+            trades=self.trades,
+            price_data=self.price_data
         )
 
 
