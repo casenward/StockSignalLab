@@ -223,7 +223,7 @@ def analysis(strategy_name):
     wins = sum(1 for a in alphas if a > 0)
     total = len(alphas)
     pct = (wins / total * 100) if total else 0.0
-    print(f"Your strategy outperformed buy-and-hold on {wins}/{total} stocks ({pct:.2f}%).")
+    print(f"Your strategy outperformed buy-and-hold on {pct:.2f}% of large-cap stocks.")
 
 
 if __name__ == "__main__":
