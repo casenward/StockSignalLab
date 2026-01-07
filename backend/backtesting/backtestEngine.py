@@ -2,7 +2,7 @@ from typing import List
 from datetime import date, timedelta
 import importlib
 import yfinance as yf
-import statistics
+
 
 # -------------------------------------------------
 # Configuration
@@ -23,6 +23,7 @@ LARGE_CAP_TICKERS = [
     "AAPL", "MSFT", "GOOGL", "AMZN", "META",
     "JNJ", "PG", "KO", "V", "BRK-B"
 ]
+
 
 # -------------------------------------------------
 # Result Container (simple + explicit)
@@ -154,7 +155,7 @@ class BacktestEngine:
             price_data = []
             for row in df.itertuples(index=True, name=None):
                 price_data.append({
-                "date": row[0].date(),     # index
+                    "date": row[0].date(),     # index
                     "open": float(row[1]),     # Open
                     "close": float(row[4]),    # Close
                     "symbol": ticker
@@ -181,84 +182,49 @@ class BacktestEngine:
         return results
 
 
-# -------------------------------------------------
-# Research Entry Point
-# -------------------------------------------------
-
-
-if __name__ == "__main__":
-    strategy_module = importlib.import_module("backend.strategies.mockStrategy")
-    StrategyClass = getattr(strategy_module, "MockStrategy")
+def analysis(strategy_name):
+    # Load strategy
+    module_path, class_name = STRATEGIES[strategy_name].rsplit(".", 1)
+    module = importlib.import_module(module_path)
+    StrategyClass = getattr(module, class_name)
     strategy = StrategyClass()
 
     engine = BacktestEngine(
-        ticker="",
-        price_data=[],
+        ticker=None,
+        price_data=None,
         strategy=strategy
     )
 
     results = engine.run_large_cap_stability_test()
 
+    print("\n=== Test 1: Large-Cap Stability Results ===\n")
+
+    for r in results:
+        print(
+            f"{r['ticker']}: "
+            f"Strategy={r['strategy_return']:.2%}, "
+            f"Buy&Hold={r['buy_and_hold_return']:.2%}, "
+            f"Alpha={r['alpha']:.2%}, "
+            f"MaxDD={r['max_drawdown']:.2%}, "
+            f"Trades={r['trades']}, "
+            f"TimeInMarket={r['time_in_market']:.2%}"
+        )
+
     alphas = [r["alpha"] for r in results]
-print("\n=== Aggregate Stability Analysis (Test 1) ===")
 
-# --- Alpha behavior ---
-median_alpha = statistics.median(alphas)
-best_alpha = max(alphas)
-worst_alpha = min(alphas)
-alpha_std = statistics.pstdev(alphas)
+    print("\n=== Aggregate Summary ===")
+    if alphas:
+        print(f"Median Alpha: {sorted(alphas)[len(alphas)//2]:.2%}")
+        print(f"Best Alpha: {max(alphas):.2%}")
+        print(f"Worst Alpha: {min(alphas):.2%}")
+    else:
+        print("No results to summarize.")
 
-print("Relative Performance Behavior:")
-print(f"  Median Alpha: {median_alpha:.2%}")
-print(f"  Alpha Range: {worst_alpha:.2%} → {best_alpha:.2%}")
-print(f"  Alpha Std Dev: {alpha_std:.2%}")
+    wins = sum(1 for a in alphas if a > 0)
+    total = len(alphas)
+    pct = (wins / total * 100) if total else 0.0
+    print(f"Your strategy outperformed buy-and-hold on {wins}/{total} stocks ({pct:.2f}%).")
 
-# --- Exposure consistency ---
-time_in_market = [r["time_in_market"] for r in results]
-avg_exposure = statistics.mean(time_in_market)
-min_exposure = min(time_in_market)
-max_exposure = max(time_in_market)
 
-print("\nExposure Profile:")
-print(f"  Avg Time in Market: {avg_exposure:.2%}")
-print(f"  Exposure Range: {min_exposure:.2%} → {max_exposure:.2%}")
-
-# --- Trade behavior ---
-trades = [r["trades"] for r in results]
-print("\nTrading Activity:")
-print(f"  Avg Trades: {statistics.mean(trades):.1f}")
-print(f"  Trade Count Range: {min(trades)} → {max(trades)}")
-
-# --- Risk sanity ---
-drawdowns = [r["max_drawdown"] for r in results]
-print("\nDrawdown Sanity Check:")
-print(f"  Median Max Drawdown: {statistics.median(drawdowns):.2%}")
-print(f"  Worst Max Drawdown: {max(drawdowns):.2%}")
-
-# --- Outlier detection (behavioral, not judgmental) ---
-outliers = [r for r in results if abs(r["alpha"] - median_alpha) > 2 * alpha_std]
-
-if outliers:
-    print("\nInterpretation:")
-    print(
-        "Across the large-cap universe, the strategy demonstrates consistent behavior "
-        "in terms of exposure, trade frequency, and drawdown characteristics. "
-        "Time in market remains tightly clustered across assets, indicating stable "
-        "signal activity rather than asset-specific sensitivity. "
-        "Relative performance versus Buy & Hold varies by ticker, suggesting that "
-        "the signal’s effectiveness is conditional on asset behavior rather than "
-        "structurally unstable. Overall, no evidence of pathological or erratic "
-        "behavior is observed under stable market conditions."
-    )
-    
-else:
-    print("\nNo significant behavioral outliers detected.")
-
-    print("\nInterpretation:")
-    print(
-        "Across large-cap stocks, the strategy exhibits consistent exposure, "
-        "similar trade frequency, and bounded drawdowns. Performance relative "
-        "to Buy & Hold varies by asset but does not display pathological or "
-        "unstable behavior under stable market conditions."
-    )
-
+if __name__ == "__main__":
+    analysis("mock")
