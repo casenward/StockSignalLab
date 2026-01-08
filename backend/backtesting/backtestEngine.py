@@ -234,6 +234,14 @@ class BacktestEngine:
             })
 
         return results
+    
+    def bullish_test(self):
+        '' 'Periods selected: Jan 2020 - Dec 2021 (Bull Market), Jan 2023 - Dec 2023 (Bull Market)' ''
+        
+    
+    def bearish_test(self):
+        # Placeholder for bearish market test implementation
+        pass
 
 
 
@@ -304,6 +312,7 @@ def analysis(strategy_name):
         print(f"Mean Alpha: {(total_alphas / len(alphas)):.2%}")
         print(f"Best Alpha: {max(alphas):.2%}")
         print(f"Worst Alpha: {min(alphas):.2%}")
+        print(f"Standard Deviation of Alpha: {(sum((x - (total_alphas / len(alphas)))**2 for x in alphas) / len(alphas))**0.5:.2%}")
         
     avg_num_trades = sum(r["trades"] for r in results) / len(results) if results else 0
     print(f"Average Number of Trades: {avg_num_trades:.2f}")
