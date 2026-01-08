@@ -31,6 +31,20 @@ PERFORMANCE_TEST_TICKERS = [
     "CAT", "UAL"
 ]
 
+BULL_2020_2021_TICKERS = [
+    "TSLA", "NVDA", "AMD", "AAPL", "MSFT",
+    "SHOP", "ZM", "SNOW",
+    "LULU", "ROKU"
+]
+
+BEAR_2022_TICKERS = [
+    "META", "NFLX", "SHOP", "ZM", "SNOW",
+    "TSLA", "COIN",
+    "TGT", "NKE",
+    "BA"
+]
+
+
 
 
 # -------------------------------------------------
@@ -236,12 +250,98 @@ class BacktestEngine:
         return results
     
     def bullish_test(self):
-        '' 'Periods selected: Jan 2020 - Dec 2021 (Bull Market), Jan 2023 - Dec 2023 (Bull Market)' ''
+        '' 'Periods selected: Jan 2020 - Dec 2021 (Bull Market)' ''
+        results = []
+        
+        start_date = date(2020, 1, 1)
+        end_date = date(2021, 12, 31)
+        
+        
+        for ticker in BULL_2020_2021_TICKERS:
+            df = yf.download(
+                ticker,
+                start=start_date,
+                end=end_date,
+                progress=False,
+                auto_adjust=False
+            )
+
+            if df.empty or len(df) < 2:
+                continue
+
+            price_data = []
+            for row in df.itertuples(index=True, name=None):
+                price_data.append({
+                    "date": row[0].date(),     # index
+                    "open": float(row[1]),     # Open
+                    "close": float(row[4]),    # Close
+                    "symbol": ticker
+                })
+
+            engine = BacktestEngine(
+                ticker=ticker,
+                price_data=price_data,
+                strategy=self.strategy
+            )
+
+            result = engine.run()
+
+            results.append({
+                "ticker": ticker,
+                "strategy_return": result.strategy_return_pct,
+                "buy_and_hold_return": result.buy_and_hold_return_pct,
+                "alpha": result.strategy_return_pct - result.buy_and_hold_return_pct,
+            })
+            
+        return results
+        
+        
         
     
     def bearish_test(self):
-        # Placeholder for bearish market test implementation
-        pass
+        '' 'Periods selected: Jan 2022 - Dec 2022 (Bear Market)' ''
+        results = []
+        
+        start_date = date(2022, 1, 1)
+        end_date = date(2022, 12, 31)
+        
+        
+        for ticker in BEAR_2022_TICKERS:
+            df = yf.download(
+                ticker,
+                start=start_date,
+                end=end_date,
+                progress=False,
+                auto_adjust=False
+            )
+
+            if df.empty or len(df) < 2:
+                continue
+
+            price_data = []
+            for row in df.itertuples(index=True, name=None):
+                price_data.append({
+                    "date": row[0].date(),     # index
+                    "open": float(row[1]),     # Open
+                    "close": float(row[4]),    # Close
+                    "symbol": ticker
+                })
+
+            engine = BacktestEngine(
+                ticker=ticker,
+                price_data=price_data,
+                strategy=self.strategy
+            )
+
+            result = engine.run()
+
+            results.append({
+                "ticker": ticker,
+                "strategy_return": result.strategy_return_pct,
+                "buy_and_hold_return": result.buy_and_hold_return_pct,
+                "alpha": result.strategy_return_pct - result.buy_and_hold_return_pct,
+            })
+        return results
 
 
 
@@ -320,7 +420,48 @@ def analysis(strategy_name):
     avg_time_in_market = sum(r["time_in_market"] for r in results) / len(results) if results else 0
     print(f"Average Time in Market: {avg_time_in_market:.2%}")
     
-
-
+    
+    ''  'TEST 3: Bullish Market Test'  ''
+    results = engine.bullish_test()
+    print("\n=== Test 3: Bullish Market Test Results ===\n")
+    for r in results:
+        print(
+            f"{r['ticker']}: "
+            f"Strategy={r['strategy_return']:.2%}, "
+            f"Buy&Hold={r['buy_and_hold_return']:.2%}, "
+            f"Alpha={r['alpha']:.2%}, "
+        )
+        
+    print("\n=== Bullish Market Test Summary ===")
+    alphas = [r["alpha"] for r in results]
+    if alphas:
+        print(f"Mean Alpha: {(sum(alphas) / len(alphas)):.2%}")
+        print(f"Best Alpha: {max(alphas):.2%}")
+        print(f"Worst Alpha: {min(alphas):.2%}")
+        print(f"Standard Deviation of Alpha: {(sum((x - (sum(alphas) / len(alphas)))**2 for x in alphas) / len(alphas))**0.5:.2%}")
+        print(f"Median Alpha: {sorted(alphas)[len(alphas)//2]:.2%}")
+    
+    ''  'TEST 4: Bearish Market Test'  ''
+    results = engine.bearish_test()
+    print("\n=== Test 4: Bearish Market Test Results ===\n")
+    for r in results:
+        print(
+            f"{r['ticker']}: "
+            f"Strategy={r['strategy_return']:.2%}, "
+            f"Buy&Hold={r['buy_and_hold_return']:.2%}, "
+            f"Alpha={r['alpha']:.2%}, "
+        )
+    print("\n=== Bearish Market Test Summary ===")
+    alphas = [r["alpha"] for r in results]
+    
+    if alphas:
+        print(f"Mean Alpha: {(sum(alphas) / len(alphas)):.2%}")
+        print(f"Best Alpha: {max(alphas):.2%}")
+        print(f"Worst Alpha: {min(alphas):.2%}")
+        print(f"Standard Deviation of Alpha: {(sum((x - (sum(alphas) / len(alphas)))**2 for x in alphas) / len(alphas))**0.5:.2%}")
+        print(f"Median Alpha: {sorted(alphas)[len(alphas)//2]:.2%}")
+        
+        
+    
 if __name__ == "__main__":
     analysis("mock")
