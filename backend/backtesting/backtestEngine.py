@@ -24,6 +24,14 @@ LARGE_CAP_TICKERS = [
     "JNJ", "PG", "KO", "V", "BRK-B"
 ]
 
+PERFORMANCE_TEST_TICKERS = [
+    "NVDA", "TSLA", "AMD", "COIN", "SYM",
+    "NKE", "JPM", "XOM",
+    "PLTR", "RIVN", "SNOW", "SHOP", "CRWD",
+    "CAT", "UAL"
+]
+
+
 
 # -------------------------------------------------
 # Result Container (simple + explicit)
@@ -180,10 +188,58 @@ class BacktestEngine:
             })
 
         return results
+    
+    def performance_test(self):
+        results = []
+        
+        end_date = date.today()
+        start_date = end_date - timedelta(days=TIME_PERIODS["6mo"])
+        
+        for ticker in PERFORMANCE_TEST_TICKERS:
+            df = yf.download(
+                ticker,
+                start=start_date,
+                end=end_date,
+                progress=False,
+                auto_adjust=False
+            )
+
+            if df.empty or len(df) < 2:
+                continue
+            
+            price_data = []
+            for row in df.itertuples(index=True, name=None):
+                price_data.append({
+                    "date": row[0].date(),     # index
+                    "open": float(row[1]),     # Open
+                    "close": float(row[4]),    # Close
+                    "symbol": ticker
+                })
+
+            engine = BacktestEngine(
+                ticker=ticker,
+                price_data=price_data,
+                strategy=self.strategy
+            )
+
+            result = engine.run()
+
+            results.append({
+                "ticker": ticker,
+                "alpha": result.strategy_return_pct - result.buy_and_hold_return_pct,
+                "strategy_return": result.strategy_return_pct,
+                "buy_and_hold_return": result.buy_and_hold_return_pct,
+                "trades": result.trades_count,
+                "time_in_market": result.time_in_market_pct
+            })
+
+        return results
+
 
 
 def analysis(strategy_name):
-    # Load strategy
+    ''  'TEST 1: Large-Cap Stability Analysis'  ''
+    
     module_path, class_name = STRATEGIES[strategy_name].rsplit(".", 1)
     module = importlib.import_module(module_path)
     StrategyClass = getattr(module, class_name)
@@ -224,6 +280,37 @@ def analysis(strategy_name):
     total = len(alphas)
     pct = (wins / total * 100) if total else 0.0
     print(f"Your strategy outperformed buy-and-hold on {pct:.2f}% of large-cap stocks.")
+    
+    
+    
+    
+    ''  'TEST 2: Performance Test'  ''
+    results = engine.performance_test()
+    print("\n=== Test 2: Performance Test Results ===\n")
+    for r in results:
+        print(
+            f"{r['ticker']}: "
+            f"Strategy={r['strategy_return']:.2%}, "
+            f"Buy&Hold={r['buy_and_hold_return']:.2%}, "
+            f"Alpha={r['alpha']:.2%}, "
+            f"Trades={r['trades']}, "
+            f"TimeInMarket={r['time_in_market']:.2%}"
+        )
+        
+    alphas = [r["alpha"] for r in results]
+    total_alphas = sum(alphas)
+    print("\n=== Performance Test Summary ===")
+    if alphas:
+        print(f"Mean Alpha: {(total_alphas / len(alphas)):.2%}")
+        print(f"Best Alpha: {max(alphas):.2%}")
+        print(f"Worst Alpha: {min(alphas):.2%}")
+        
+    avg_num_trades = sum(r["trades"] for r in results) / len(results) if results else 0
+    print(f"Average Number of Trades: {avg_num_trades:.2f}")
+    
+    avg_time_in_market = sum(r["time_in_market"] for r in results) / len(results) if results else 0
+    print(f"Average Time in Market: {avg_time_in_market:.2%}")
+    
 
 
 if __name__ == "__main__":
