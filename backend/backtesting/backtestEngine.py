@@ -10,6 +10,9 @@ import yfinance as yf
 
 STRATEGIES = {
     "mock": "backend.strategies.mockStrategy.MockStrategy",
+    "trend_follower": "backend.strategies.trendFollowerStrategy.TrendFollowerStrategy",
+    "momentum": "backend.strategies.momentumBreakoutStrategy.MomentumBreakoutStrategy",
+    "mean_reversion": "backend.strategies.meanReversionStrategy.MeanReversionStrategy",
 }
 
 TIME_PERIODS = {
@@ -464,4 +467,4 @@ def analysis(strategy_name):
         
     
 if __name__ == "__main__":
-    analysis("mock")
+    analysis("mean_reversion")
